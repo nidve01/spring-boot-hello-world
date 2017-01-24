@@ -1,0 +1,39 @@
+name: nidve01-spring-tester
+language: java
+pipeline: build_bake_test_deployment:v0.1
+security:
+  keys_loc: "conf/"
+notification:
+  type: slack
+  domain: 
+  channel: qubeship
+build:
+  skip: false
+  image:
+    name: maven:3.3-jdk-8-onbuild
+    onbuild:
+      - mvn package
+  publish_artifact: target/
+  lint: true
+bake:
+  skip: false
+  strategy: docker
+  script: Dockerfile
+  repositories:
+    - name: google
+      prefix: gcr.io/qubeship-partners
+      type: gcr
+test:
+  skip: true
+  functional:
+    provider: qubeship-sg
+deployment:
+  skip: false
+  continuous_deployment: true
+  service_name: container-nidve01-spring-test
+  environments:
+    prod:
+      - type: qubeship_managed
+        id: 5882b1bb1d7801000664c3cc
+        template_id: qube_external_app_v1
+        srcRepo: google
